@@ -1,0 +1,40 @@
+apply plugin: 'java-library'
+
+description = 'Neo4j Graph Data Science :: Procedures :: Test'
+
+group = 'org.neo4j.gds'
+
+dependencies {
+    annotationProcessor project(':config-generator')
+    annotationProcessor group: 'org.immutables', name: 'value', version: ver.'immutables'
+    compileOnly project(':annotations')
+    compileOnly group: 'org.immutables', name: 'value-annotations', version: ver.'immutables'
+    compileOnly group: 'org.jetbrains',  name: 'annotations',       version: ver.'jetbrains-annotations'
+    implementation group: 'org.reflections', name: 'reflections',  version: ver.doc.'reflections'
+
+    implementation project(':algo-common')
+    implementation project(':algo-test')
+    implementation project(':config-api')
+    implementation project(':core')
+    implementation project(':executor')
+    implementation project(':graph-schema-api')
+    implementation project(':licensing')
+    implementation project(':memory-usage')
+    implementation project(':open-licensing')
+    implementation project(':pregel')
+    implementation project(':string-formatting')
+    implementation project(':transaction')
+
+    api project(':proc-catalog')
+    api project(':proc-common')
+    api project(':test-utils')
+    api project(':test-graph-loaders')
+}
+
+afterEvaluate {
+    if (ver.'neo4j' == neos.'dev') {
+        dependencies {
+            implementation group: 'org.neo4j', name: 'neo4j-record-storage-engine', version: neos.dev
+        }
+    }
+}

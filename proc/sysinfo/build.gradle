@@ -1,0 +1,62 @@
+apply plugin: 'java-library'
+apply plugin: 'nebula.info-broker'
+apply plugin: 'nebula.info-props'
+apply plugin: 'nebula.info-basic'
+apply plugin: 'nebula.info-java'
+apply plugin: 'nebula.info-scm'
+
+description = 'Neo4j Graph Data Science :: Procedures :: Sysinfo'
+
+group = 'org.neo4j.gds'
+
+dependencies {
+    annotationProcessor project(':annotations')
+    annotationProcessor group: 'org.immutables',           name: 'value',              version: ver.'immutables'
+
+    compileOnly project(':annotations')
+    compileOnly group: 'org.immutables', name: 'value-annotations', version: ver.'immutables'
+
+    compileOnly group: 'org.neo4j', name: 'neo4j-procedure-api', version: ver.neo4j
+    compileOnly group: 'org.neo4j', name: 'neo4j-configuration', version: ver.neo4j
+    compileOnly group: 'org.neo4j', name: 'neo4j-kernel', version: ver.neo4j
+
+    implementation project(':core')
+    implementation project(':memory-usage')
+    implementation project(':licensing')
+    implementation project(':proc-common')
+
+    testImplementation project(':test-utils')
+    testImplementation project(':doc-test')
+    testImplementation project(':test-graph-loaders')
+}
+
+// provide docs sources for use in test
+tasks.register('unpackDocs', Copy) {
+    dependsOn project(':doc').tasks.assembleDocs
+    from tarTree(project(':doc').tasks.assembleDocs.archiveFile)
+    into "$buildDir/doc-sources"
+}
+test.dependsOn tasks.named('unpackDocs')
+
+// configure the keys that will be written to the info.properties file
+infoBroker {
+    includedManifestProperties = [
+        'Build-Date',
+        'Build-Java-Version',
+        'Created-By',
+        'Full-Change',
+        'Implementation-Version',
+        'X-Compile-Target-JDK',
+    ]
+}
+
+// write the info.properties file on classes
+task('processVersionResources', type: Copy, dependsOn: processResources) {
+    into project.sourceSets.main.output.resourcesDir
+    from(writeManifestProperties) {
+        rename { "info.properties" }
+        into "META-INF"
+    }
+}
+tasks.writeManifestProperties.outputs.upToDateWhen { false }
+classes.dependsOn(processVersionResources)

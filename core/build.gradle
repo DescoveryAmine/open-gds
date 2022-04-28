@@ -1,0 +1,86 @@
+apply plugin: 'java-library'
+
+description = 'Neo4j Graph Data Science :: Core'
+
+group = 'org.neo4j.gds'
+
+dependencies {
+    annotationProcessor project(':annotations')
+    annotationProcessor project(':config-generator')
+    annotationProcessor group: 'org.immutables',           name: 'builder',            version: ver.'immutables'
+    annotationProcessor group: 'org.immutables',           name: 'value',              version: ver.'immutables'
+    annotationProcessor group: 'org.neo4j',                name: 'annotations',        version: ver.'neo4j'
+
+    compileOnly         group: 'org.immutables',           name: 'builder',            version: ver.'immutables'
+    compileOnly         group: 'org.immutables',           name: 'value-annotations',  version: ver.'immutables'
+    compileOnly         group: 'org.jetbrains',            name: 'annotations',        version: ver.'jetbrains-annotations'
+
+    neodeps().each {
+        compileOnly(group: 'org.neo4j', name: it, version: ver.'neo4j') {
+            transitive = false
+        }
+    }
+
+    implementation project(':annotations')
+    implementation project(':config-api')
+    implementation project(':licensing')
+    implementation project(':graph-schema-api')
+    implementation project(':memory-usage')
+    implementation project(':model-catalog-api')
+    implementation project(':open-licensing')
+    implementation project(':open-model-catalog')
+    implementation project(':string-formatting')
+    implementation project(':collections')
+    implementation project(':collections-memory-estimation')
+    implementation project(':transaction')
+
+    implementation project(':concurrency-validation-api')
+
+    api(
+            project(':neo4j-kernel-adapter'),
+            project(':graph-projection-api'),
+            project(':graph-dimensions'),
+            project(':collections'),
+            [group: 'org.bouncycastle',        name: 'bcpkix-jdk15on',           version: ver.'bouncycastle'],
+            [group: 'org.apache.commons',      name: 'commons-text',             version: ver.'commons-text'],
+            [group: 'org.eclipse.collections', name: 'eclipse-collections-api',  version: ver.'eclipse-collections'],
+            [group: 'org.eclipse.collections', name: 'eclipse-collections',      version: ver.'eclipse-collections'],
+            [group: 'com.carrotsearch',        name: 'hppc',                     version: ver.'hppc'],
+            [group: 'io.jsonwebtoken',         name: 'jjwt-api',                 version: ver.'jjwt'],
+    )
+
+    implementation(
+        [group: 'io.jsonwebtoken', name: 'jjwt-impl', version: ver.'jjwt'],
+        [group: 'org.roaringbitmap', name: 'RoaringBitmap', version: ver.'RoaringBitmap'],
+    )
+
+    // Set hardcoded version of jackson-databind until there is a new version of jjwt-jackson
+    implementation(group: 'io.jsonwebtoken', name: 'jjwt-jackson', version: ver.'jjwt') {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+    }
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: ver.'jackson'
+    implementation group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-csv', version: ver.'jackson'
+
+    // TEST DEPENDENCIES
+
+    testCompileOnly group: 'org.immutables', name: 'builder', version: ver.'immutables'
+
+    testAnnotationProcessor project(':annotations')
+    testAnnotationProcessor project(':config-generator')
+    testAnnotationProcessor group: 'org.immutables', name: 'value', version: ver.'immutables'
+
+    testImplementation project(':test-graph-loaders')
+    testImplementation project(':test-utils')
+    testImplementation project(':edition-api')
+
+    testImplementation group: 'net.jqwik',       name: 'jqwik',               version: ver.'jqwik'
+    testImplementation group: 'io.qala.datagen', name: 'qala-datagen-junit5', version: ver.'qala-datagen'
+}
+
+afterEvaluate {
+    if (ver.'neo4j' == neos.'dev') {
+        dependencies {
+            testImplementation group: 'org.neo4j', name: 'neo4j-record-storage-engine', version: neos.dev
+        }
+    }
+}

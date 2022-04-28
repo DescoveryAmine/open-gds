@@ -1,0 +1,28 @@
+apply plugin: 'java-library'
+
+description = 'Neo4j Graph Data Science :: Procedures :: Misc'
+
+group = 'org.neo4j.gds'
+
+dependencies {
+    implementation project(':annotations')
+    implementation project(':core')
+    implementation project(':csv')
+    implementation project(':executor')
+    implementation project(':memory-usage')
+    implementation project(':neo4j-adapter')
+    implementation project(':proc-catalog')
+    implementation project(':proc-common')
+    implementation project(':proc-embeddings')
+    implementation project(':string-formatting')
+
+    compileOnly group: 'org.jetbrains',  name: 'annotations',       version: ver.'jetbrains-annotations'
+    neodeps().each {
+        compileOnly(group: 'org.neo4j', name: it, version: ver.'neo4j') {
+            transitive = false
+        }
+    }
+
+    testImplementation project(':proc-test')
+    testImplementation project(':ml-core')
+}

@@ -1,0 +1,25 @@
+apply plugin: 'java-library'
+
+description = 'Neo4j Graph Data Science :: Collections'
+
+group = 'org.neo4j.gds'
+
+dependencies {
+    annotationProcessor(project(":collections-generator"))
+
+    implementation project(':annotations')
+    implementation project(':memory-usage')
+    
+    testImplementation platform(dep.junit5bom)
+    testImplementation dep.junit5jupiter
+    testImplementation dep.junit5migration
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: ver.'assertj'
+}
+
+sourceSets {
+    test {
+        java {
+            srcDirs += ['build/generated/sources/annotationProcessor/java/test']
+        }
+    }
+}

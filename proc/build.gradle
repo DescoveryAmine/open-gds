@@ -1,0 +1,52 @@
+apply plugin: 'java-library'
+
+description = 'Neo4j Graph Data Science :: Procedures'
+
+group = 'org.neo4j.gds'
+
+dependencies {
+    annotationProcessor project(':annotations')
+
+    annotationProcessor group: 'org.immutables',           name: 'builder',            version: ver.'immutables'
+    annotationProcessor group: 'org.immutables',           name: 'value',              version: ver.'immutables'
+
+    compileOnly group: 'org.immutables', name: 'value-annotations', version: ver.'immutables'
+    compileOnly group: 'org.jetbrains',  name: 'annotations',       version: ver.'jetbrains-annotations'
+    neodeps().each {
+        compileOnly(group: 'org.neo4j', name: it, version: ver.'neo4j') {
+            transitive = false
+        }
+    }
+
+    implementation project(':config-api')
+    implementation project(':core')
+    implementation project(':executor')
+    implementation project(':model-catalog-api')
+    implementation project(':open-model-catalog')
+    implementation project(':string-formatting')
+
+    api project(':proc-common')
+    api project(':alpha-proc')
+    api project(':cypher-aggregation')
+    api project(':proc-embeddings')
+    api project(':proc-similarity')
+    api project(':proc-centrality')
+    api project(':proc-community')
+    api project(':proc-path-finding')
+    api project(':proc-beta')
+    api project(':proc-catalog')
+    api project(':proc-pipeline-catalog')
+    api project(':proc-misc')
+
+    implementation(
+        project(':neo4j-adapter')
+    )
+
+    // TEST DEPENDENCIES
+
+    testCompileOnly group: 'org.immutables', name: 'builder', version: ver.'immutables'
+
+    testImplementation project(':executor')
+    testImplementation project(':model-catalog-api')
+    testImplementation project(':proc-test')
+}

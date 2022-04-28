@@ -1,0 +1,17 @@
+apply plugin: 'java-library'
+
+description = 'Neo4j Graph Data Science :: String Formatting'
+
+group = 'org.neo4j.gds'
+
+dependencies {
+
+    implementation (
+        [group: 'org.apache.commons',      name: 'commons-text',             version: ver.'commons-text'],
+    )
+
+    testImplementation platform(dep.junit5bom)
+    testImplementation dep.junit5jupiter
+    testImplementation group: 'org.assertj',             name: 'assertj-core',            version: ver.'assertj'
+    testImplementation group: 'org.hamcrest',            name: 'hamcrest-library',        version: ver.'hamcrest'
+}

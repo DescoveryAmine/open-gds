@@ -1,0 +1,2 @@
+org.neo4j.kernel.internal.GraphDatabaseAPI#getDependencyResolver() @ Use the GraphDatabaseApiProxy from the neo4j-adapter module instead
+org.neo4j.internal.helpers.collection.MapUtil @ Use the GDS MapUtil instead.

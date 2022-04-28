@@ -1,0 +1,19 @@
+apply plugin: 'java-library'
+
+description = 'Neo4j Graph Data Science :: Annotations'
+
+group = 'org.neo4j.gds'
+
+dependencies {
+    annotationProcessor group: 'org.immutables',  name: 'builder',            version: ver.'immutables'
+    annotationProcessor group: 'org.immutables',  name: 'value',              version: ver.'immutables'
+
+    compileOnly         group: 'org.immutables',  name: 'value-annotations',  version: ver.'immutables'
+    compileOnly         group: 'org.jetbrains',   name: 'annotations',        version: ver.'jetbrains-annotations'
+
+    testCompileOnly     group: 'org.jetbrains',   name: 'annotations',        version: ver.'jetbrains-annotations'
+
+    testImplementation platform(dep.junit5bom)
+    testImplementation dep.junit5jupiter
+    testImplementation group: 'org.assertj',      name: 'assertj-core',       version: ver.'assertj'
+}

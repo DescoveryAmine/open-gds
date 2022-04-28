@@ -1,0 +1,136 @@
+ext.vendor = { ->
+    // By specifying the vendor, we force us (and CI) to
+    // use that specific JDK version. If it is not locally
+    // available, Gradle will provision the toolchain, i.e.
+    // download it.
+    if (project.hasProperty("javaLanguageVendor")) {
+        return JvmVendorSpec.matching(project.property('javaLanguageVendor'))
+    } else {
+        return JvmVendorSpec.matching("ADOPTIUM")
+    }
+}
+
+ext.languageVersion = { ->
+    if (project.hasProperty("javaLanguageVersion")) {
+        return JavaLanguageVersion.of(project.property('javaLanguageVersion'))
+    } else if (ver.'neo4j' == neos.'dev') {
+        return JavaLanguageVersion.of(17)
+    } else {
+        return JavaLanguageVersion.of(11)
+    }
+}
+
+allprojects {
+    plugins.withType(JavaPlugin) {
+        java {
+            toolchain {
+                vendor = vendor()
+                languageVersion = languageVersion()
+            }
+        }
+    }
+}
+
+allprojects {
+    plugins.withType(JavaLibraryPlugin) {
+
+        repositories {
+            mavenCentral()
+            if (project.hasProperty('pipelineRepository')) {
+                maven {
+                    url = "file://${project.getProperty('pipelineRepository')}"
+                }
+            }
+            maven {
+                name = 'teamcity-artifacts'
+                url = "file://${rootProject.projectDir}/neo4j-repo"
+            }
+            mavenLocal()
+        }
+
+        task sourcesJar(type: Jar) {
+            classifier = 'sources'
+            from(sourceSets.main.allJava)
+        }
+
+        javadoc {
+            StandardJavadocDocletOptions opts = (options as StandardJavadocDocletOptions)
+            opts.addBooleanOption('Xdoclint:all,-missing', true)
+        }
+
+        task javadocJar(type: Jar) {
+            classifier = 'javadoc'
+            from javadoc
+        }
+
+        test {
+            debugOptions {
+                enabled = project.hasProperty('test-debug')
+                port = 5425
+                server = true
+                suspend = true
+            }
+
+            // Since JDK 17 the default access to the following
+            // packages is "deny". We need to open them in order
+            // to gain access in GDS / Neo4j.
+            jvmArgs += '--add-opens=java.base/java.lang=ALL-UNNAMED'
+            jvmArgs += '--add-opens=java.base/java.lang.invoke=ALL-UNNAMED'
+            jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+            jvmArgs += '--add-opens=java.base/java.util.stream=ALL-UNNAMED'
+            jvmArgs += '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED'
+            jvmArgs += '--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED'
+
+            maxHeapSize = "3G"
+            useJUnitPlatform {
+                includeEngines 'junit-jupiter'
+                includeEngines 'jqwik'
+            }
+            // enable verbose test logging
+            // testLogging {
+            //     events "passed", "skipped", "failed", "standardOut", "standardError"
+            // }
+            testLogging {
+                afterSuite { desc, result ->
+                    if (!desc.parent) { // will match the outermost suite
+                        println "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                    }
+                }
+            }
+        }
+
+        tasks.withType(JavaCompile) {
+            if (ver.'neo4j' == neos.'dev') {
+                options.compilerArgs += "--release=17"
+            } else {
+                options.compilerArgs += "--release=11"
+            }
+
+            options.warnings = true
+            options.encoding = 'UTF-8'
+
+            // Since JDK 17 the default access to the following
+            // packages is "deny". We need to open them in order
+            // to gain access in GDS / Neo4j.
+            options.forkOptions.jvmArgs += '--add-opens=java.base/java.lang.invoke=ALL-UNNAMED'
+            options.forkOptions.jvmArgs += '--add-opens=java.base/java.nio=ALL-UNNAMED'
+            options.forkOptions.jvmArgs += '--add-opens=java.base/java.util.stream=ALL-UNNAMED'
+            options.forkOptions.jvmArgs += '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED'
+            options.forkOptions.jvmArgs += '--add-opens=java.base/java.lang=ALL-UNNAMED'
+
+            options.compilerArgs += [
+                    '-parameters',
+                    '-Xlint:all,-cast,-deprecation,-processing,-serial,-try,-unchecked,-varargs,-rawtypes,-removal',
+                    '-Xmaxerrs', '1337'
+            ]
+        }
+
+        afterEvaluate {
+            if (group.startsWith('com.neo4j.gds')) {
+                javadoc {
+                    enabled false
+                }
+            }
+        }
+    }
+}
